@@ -1,29 +1,36 @@
 import crel from 'crel'
 import PubSub from 'pubsub-js'
-import { toggleMenu, createLeftClickMenu, createNodeMenu } from './menus'
 import { createConnection } from './connection'
-
+import { toggleMenu, createLeftClickMenu, createNodeMenu } from './menus'
 const area = document.getElementById('area')
 
-const nodes = []
-const lines = []
+let nodes = []
 const connections = {}
-
-// menus
-const nodeMenu = createNodeMenu()
-const contextMenu = createLeftClickMenu(nodes)
-area.appendChild(nodeMenu)
-area.appendChild(contextMenu)
 
 // Utility functions
 export const getNodeById = (id) => {
-	console.log(nodes)
 	return nodes.find((node) => node.element.id === id)
 }
 
-export const getLineById = (id) => {
-	return lines.find((line) => line.id === id)
+// TODO: Why is this called twice?
+const removeNode = (msg, id) => {
+	const node = getNodeById(id)
+	if (!node) return
+	for (const [key, value] of Object.entries(connections)) {
+		console.log(value.inputNode.element.id)
+		console.log(value.outputNode.element.id)
+		if (value.inputNode.element.id === id || value.outputNode.element.id === id)
+			PubSub.publish('connection_remove', value.inputNode.element.id)
+	}
+	node.element.remove()
+	nodes = nodes.filter((node) => {
+		return node.element.id !== id
+	})
+
+	console.log(nodes.length)
 }
+
+PubSub.subscribe('node_remove', removeNode)
 
 // connection functions
 const tryConnection = (target) => {
@@ -46,20 +53,34 @@ const tryConnection = (target) => {
 		}
 		connection.lineToken = PubSub.subscribe('moving', connection.move)
 
-		// remove connection, unsub line and input
+		// remove connection, unsub line, input and this remover
 		connection.remover = (msg, data) => {
 			if (data !== connection.inputNode.element.id) return
+			connection.inputNode.element
+				.querySelector('.dot-left')
+				.classList.remove('dot-connected')
 			connection.line.remove()
 			PubSub.unsubscribe(connection.lineToken)
 			PubSub.unsubscribe(connection.nodeToken)
+			PubSub.unsubscribe(connection.removeToken)
 			delete connections[data]
 		}
-		PubSub.subscribe('remove_connection', connection.remover)
+
+		connection.removeToken = PubSub.subscribe(
+			'connection_remove',
+			connection.remover
+		)
 
 		// Add to connections
 		connections[connection.line.id] = connection
 	}
 }
+
+// menus
+const nodeMenu = createNodeMenu()
+const contextMenu = createLeftClickMenu(nodes, tryConnection)
+area.appendChild(nodeMenu)
+area.appendChild(contextMenu)
 
 // event listeners for Crel elements
 crel.attrMap['on'] = (element, value) => {

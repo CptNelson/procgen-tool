@@ -1,22 +1,33 @@
 import crel from 'crel'
+import PubSub from 'pubsub-js'
 import Cellular from './nodes/cellular'
-//import Random from './nodes/random'
-//import BigCanvas from './nodes/bigcanvas'
-//import Custom from './nodes/Custom'
+import Random from './nodes/random'
+import BigCanvas from './nodes/bigcanvas'
+import Custom from './nodes/Custom'
+import { partialLine } from './connection'
 
-const nodeTypes = [Cellular] // Random, BigCanvas, Custom]
+const nodeTypes = [Cellular, Random, BigCanvas, Custom]
 let count = 0 // Node IDs
+let selectedNode = null
 
 export const createNodeMenu = () => {
 	const element = crel(
 		'div',
-		{
-			class: 'menu-item',
-			on: {
-				click: (e) => {},
+		{ class: 'menu', id: 'nodemenu' },
+		crel(
+			'div',
+			{
+				class: 'menu-item',
+				on: {
+					click: (e) => {
+						element.hidden = true
+						PubSub.publish('node_remove', selectedNode.parentElement.id)
+						selectedNode = null
+					},
+				},
 			},
-		},
-		'Delete node'
+			'Delete node'
+		)
 	)
 
 	element.hidden = true
@@ -24,7 +35,7 @@ export const createNodeMenu = () => {
 }
 //export const nodeMenu = createNodeMenu()
 
-export const createLeftClickMenu = (nodes) => {
+export const createLeftClickMenu = (nodes, tryConnection) => {
 	const els = []
 	let element
 	nodeTypes.forEach((node) => {
@@ -36,12 +47,14 @@ export const createLeftClickMenu = (nodes) => {
 					on: {
 						click: (e) => {
 							element.hidden = true
-							console.log(element.hidden)
 							const newNode = new node(
 								{ x: e.pageX + 'px', y: e.pageY + 'px' },
 								count
 							)
 							nodes.push(newNode)
+							// if we were creating a connection
+							if (partialLine)
+								tryConnection(newNode.element.querySelector('.dot-left'))
 							count++
 						},
 					},
@@ -51,7 +64,7 @@ export const createLeftClickMenu = (nodes) => {
 		)
 	})
 
-	element = crel('div', { id: 'menu' }, [...els])
+	element = crel('div', { class: 'menu' }, [...els])
 	element.hidden = true
 	return element
 }
@@ -59,8 +72,8 @@ export const createLeftClickMenu = (nodes) => {
 //export const contextMenu = createLeftClickMenu()
 
 export const toggleMenu = (e, menu) => {
-	console.log(menu.hidden)
 	if (!menu.hidden) return (menu.hidden = true)
+	if (menu.id === 'nodemenu') selectedNode = e.target
 	//x and y position of mouse or touch
 	//mouseX represents the x-coordinate of the mouse
 	let mouseX = e.clientX || e.touches[0].clientX

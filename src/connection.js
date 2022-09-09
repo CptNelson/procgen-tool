@@ -5,7 +5,7 @@ import PubSub from 'pubsub-js'
 const area = document.getElementById('area')
 
 // we use this when a line only has one connection
-let partialLine = null
+export let partialLine = null
 // remember the output node when creating a connection
 let output = null
 
@@ -23,7 +23,7 @@ area.addEventListener('mousemove', handleMouseMove)
 
 export const createConnection = (target) => {
 	if (target.classList.contains('dot-connected')) {
-		PubSub.publish('remove_connection', target.parentElement.parentElement.id)
+		PubSub.publish('connection_remove', target.parentElement.parentElement.id)
 		return false
 	}
 	if (!partialLine && target.classList.contains('dot-right')) {
@@ -57,13 +57,10 @@ export const createConnection = (target) => {
 	}
 }
 
+PubSub.subscribe('connection_create', createConnection)
+
 const resetConnection = () => {
 	partialLine.remove()
 	partialLine = null
 	output = null
-}
-
-export const deleteConnection = (connection) => {
-	connection.input.draggable.onMove = () => {}
-	connection.output.draggable.onMove = () => {}
 }

@@ -28,8 +28,6 @@ export class Node {
 				this.draw()
 			},
 		}
-
-		//this.subscribe(node.topic)
 	}
 	generateMap = (input = null) => {}
 	mySubscriber = (msg, data) => {

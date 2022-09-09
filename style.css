@@ -161,7 +161,7 @@ label {
 }
 /* === MENU === */
 
-#menu {
+.menu {
 	background-color: #ffffff;
 	box-shadow: 0 0 20px rgba(37, 40, 42, 0.22);
 	color: #1f194c;
