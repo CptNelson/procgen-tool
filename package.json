@@ -1,0 +1,25 @@
+{
+	"name": "procgen-tool",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"devDependencies": {
+		"vite": "^3.1.0"
+	},
+	"dependencies": {
+		"codeflask": "^1.4.1",
+		"crel": "^4.2.1",
+		"drawflow": "^0.0.59",
+		"leader-line": "^1.0.7",
+		"plain-draggable": "^2.5.14",
+		"pubsub-js": "^1.9.4",
+		"regenerator-runtime": "^0.13.9",
+		"rot-js": "^2.2.0",
+		"websandbox": "^0.5.3"
+	}
+}
